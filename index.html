@@ -79,12 +79,13 @@
         <div class="pt-3">
           <p class="px-4 py-2 text-xs font-semibold text-amber-500 uppercase">แพลนรายวัน</p>
           <div class="space-y-1">
-            ${[1,2,3,4,5,6,7].map(d => `
-              <button onclick="navigateTo('day${d}')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day${d}">
-                <span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">${d}</span>
-                <span class="text-sm">วันที่ ${d}</span>
-              </button>
-            `).join('')}
+            <button onclick="navigateTo('day1')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day1"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">1</span><span class="text-sm">วันที่ 1</span></button>
+            <button onclick="navigateTo('day2')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day2"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">2</span><span class="text-sm">วันที่ 2</span></button>
+            <button onclick="navigateTo('day3')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day3"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">3</span><span class="text-sm">วันที่ 3</span></button>
+            <button onclick="navigateTo('day4')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day4"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">4</span><span class="text-sm">วันที่ 4</span></button>
+            <button onclick="navigateTo('day5')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day5"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">5</span><span class="text-sm">วันที่ 5</span></button>
+            <button onclick="navigateTo('day6')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day6"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">6</span><span class="text-sm">วันที่ 6</span></button>
+            <button onclick="navigateTo('day7')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day7"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">7</span><span class="text-sm">วันที่ 7</span></button>
           </div>
         </div>
 
@@ -308,7 +309,7 @@
     // --- HOTEL PAGE & TAXI MODE ---
     function openTaxiMode(text) {
       openModal(`
-        <div class="bg-yellow-400 p-8 min-h-[50vh] flex flex-col items-center justify-center text-center rounded-2xl relative">
+        <div class="bg-yellow-400 p-8 min-h-[50vh] flex flex-col items-center justify-center text-center rounded-2xl relative border-4 border-yellow-500">
           <div class="text-6xl mb-4">🚕</div><h3 class="text-2xl font-bold text-amber-900 mb-2">กรุณาไปส่งที่ / 请送我到</h3>
           <h1 class="text-4xl md:text-5xl font-black text-red-700 my-8 leading-snug break-words">${text}</h1>
           <button onclick="closeModal()" class="w-full py-4 bg-white rounded-xl text-amber-900 font-bold text-xl shadow-lg mt-auto">ปิดหน้าจอ / 关闭</button>
@@ -334,28 +335,54 @@
       `;
     }
 
-    // --- SURVIVAL PAGE ---
+    // --- SURVIVAL PAGE (แยกโหมดสีแดงจากโหมดแท็กซี่สีเหลือง) ---
+    function openSurvivalMode(icon, th, cn) {
+      openModal(`
+        <div class="bg-red-50 p-8 min-h-[50vh] flex flex-col items-center justify-center text-center rounded-2xl relative border-4 border-red-600">
+          <div class="text-7xl mb-4">${icon}</div>
+          <h3 class="text-2xl font-bold text-gray-700 mb-2">${th}</h3>
+          <h1 class="text-5xl md:text-6xl font-black text-red-600 my-8 leading-snug break-words">${cn}</h1>
+          <button onclick="closeModal()" class="w-full py-4 bg-white border border-red-200 hover:bg-red-100 rounded-xl text-red-800 font-bold text-xl shadow-sm mt-auto transition-colors">ปิดหน้าจอ / 关闭</button>
+        </div>
+      `);
+    }
+
     function renderSurvivalPage() {
       const phrases = [
-        { th: 'ไม่ใส่พริก / ไม่เผ็ดเลย', cn: '不要辣', py: 'Bú yào là', icon: '🌶️', bg: 'from-red-100 to-red-50' },
-        { th: 'ไม่ใส่ผักชี / ต้นหอม', cn: '不要香菜/葱', py: 'Bú yào xiāngcài/cōng', icon: '🌿', bg: 'from-green-100 to-green-50' },
-        { th: 'ขอน้ำแข็งหน่อย', cn: '给我一些冰块', py: 'Gěi wǒ yìxiē bīng kuài', icon: '🧊', bg: 'from-blue-100 to-blue-50' },
-        { th: 'ห้องน้ำอยู่ไหน?', cn: '洗手间在哪里?', py: 'Xǐshǒujiān zài nǎlǐ?', icon: '🚽', bg: 'from-amber-100 to-amber-50' },
-        { th: 'อันนี้เท่าไหร่?', cn: '这个多少钱?', py: 'Zhège duōshǎo qián?', icon: '💰', bg: 'from-yellow-100 to-yellow-50' },
-        { th: 'รับ Alipay/WeChat ไหม', cn: '可用支付宝/微信吗?', py: 'Kěyǐ yòng Zhīfùbǎo/Wēixìn ma?', icon: '📱', bg: 'from-emerald-100 to-emerald-50' }
+        { th: 'ใช้ Alipay ได้ไหม', cn: '可以用支付宝吗?', py: 'Kěyǐ yòng Zhīfùbǎo ma?', icon: '📱', bg: 'from-blue-100 to-blue-50' },
+        { th: 'ฉันพูดภาษาจีนไม่ได้', cn: '我不会说中文', py: 'Wǒ bú huì shuō zhōngwén', icon: '🤐', bg: 'from-gray-200 to-gray-100' },
+        { th: 'ขอใช้มือถือแปลได้ไหม', cn: '可以用手机翻译吗?', py: 'Kěyǐ yòng shǒujī fānyì ma?', icon: '📲', bg: 'from-purple-100 to-purple-50' },
+        { th: 'มีเมนูภาษาอังกฤษไหม', cn: '有英文菜单吗?', py: 'Yǒu yīngwén càidān ma?', icon: '📖', bg: 'from-indigo-100 to-indigo-50' },
+        { th: 'อันนี้เผ็ดไหม?', cn: '这个辣吗?', py: 'Zhège là ma?', icon: '🌶️', bg: 'from-red-100 to-red-50' },
+        { th: 'ขอแบบไม่เผ็ด', cn: '不要辣', py: 'Bú yào là', icon: '🚫', bg: 'from-red-200 to-red-100' },
+        { th: 'ขอแบบเผ็ดน้อย', cn: '微辣', py: 'Wēi là', icon: '🤏', bg: 'from-orange-100 to-orange-50' },
+        { th: 'ขอน้ำแข็งหน่อย', cn: '给我一些冰块', py: 'Gěi wǒ yìxiē bīng kuài', icon: '🧊', bg: 'from-cyan-100 to-cyan-50' },
+        { th: 'ไม่ใส่ผักชี', cn: '不要香菜', py: 'Bú yào xiāngcài', icon: '🌿', bg: 'from-green-100 to-green-50' },
+        { th: 'ไม่ใส่ต้นหอม', cn: '不要葱', py: 'Bú yào cōng', icon: '🧅', bg: 'from-lime-100 to-lime-50' },
+        { th: 'ไม่ใส่แครอท', cn: '不要胡萝卜', py: 'Bú yào húluóbo', icon: '🥕', bg: 'from-orange-200 to-orange-100' },
+        { th: 'ไม่ใส่ผัก', cn: '不要蔬菜', py: 'Bú yào shūcài', icon: '🥗', bg: 'from-emerald-200 to-emerald-100' },
+        { th: 'เบอร์ 4 ตัวท้ายคือ 0749', cn: '手机尾号 0749', py: '(อ่านว่า: หลิง-ชี-ซื่อ-จิ่ว)', icon: '🚗', bg: 'from-yellow-300 to-yellow-100' },
+        { th: 'ฉันจะไปที่นี่ (ชี้รูป)', cn: '我要去这里', py: 'Wǒ yào qù zhèlǐ', icon: '📍', bg: 'from-sky-100 to-sky-50' },
+        { th: 'ช่วยเรียกรถให้หน่อยได้ไหม', cn: '可以帮我叫车吗?', py: 'Kěyǐ bāng wǒ jiào chē ma?', icon: '🚕', bg: 'from-yellow-200 to-yellow-100' },
+        { th: 'สถานีรถไฟอยู่ไหน', cn: '火车站在哪里?', py: 'Huǒchēzhàn zài nǎlǐ?', icon: '🚉', bg: 'from-amber-100 to-amber-50' },
+        { th: 'ฉันจะไปสนามบิน', cn: '我要去机场', py: 'Wǒ yào qù jīchǎng', icon: '✈️', bg: 'from-sky-200 to-sky-100' },
+        { th: 'ฉันจะไปสถานีรถไฟความเร็วสูง', cn: '我要去高铁站', py: 'Wǒ yào qù gāotiězhàn', icon: '🚄', bg: 'from-slate-200 to-slate-100' },
+        { th: 'ห้องน้ำอยู่ที่ไหน', cn: '洗手间在哪里?', py: 'Xǐshǒujiān zài nǎlǐ?', icon: '🚽', bg: 'from-yellow-100 to-yellow-50' },
+        { th: 'ขอฝากกระเป๋าไว้ได้ไหม', cn: '可以寄存行李吗?', py: 'Kěyǐ jìcún xínglǐ ma?', icon: '🧳', bg: 'from-emerald-100 to-emerald-50' }
       ];
+      
       return `
         <div class="p-4 md:p-8 space-y-4">
           <h1 class="text-2xl font-bold flex items-center gap-2"><span class="text-3xl">🀄️</span> เอาตัวรอดในจีน</h1>
           <p class="text-sm text-gray-500 mb-4">กดปุ่มขยายจอแล้วยื่นให้เค้าดูได้เลย</p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             ${phrases.map(p => `
               <div class="bg-gradient-to-br ${p.bg} rounded-2xl p-5 border glass-card relative overflow-hidden group">
                 <span class="absolute -right-2 -top-2 text-6xl opacity-20">${p.icon}</span>
                 <p class="text-sm font-bold text-gray-700 mb-1">${p.th}</p>
                 <h2 class="text-3xl font-black text-gray-900 mb-1">${p.cn}</h2>
                 <p class="text-xs text-gray-600 italic font-mono mb-4">${p.py}</p>
-                <button onclick="openTaxiMode('${p.cn}')" class="w-full py-2 bg-white rounded-xl font-bold text-sm shadow-sm">🔍 ขยายเต็มจอ</button>
+                <button onclick="openSurvivalMode('${p.icon}', '${p.th}', '${p.cn}')" class="w-full py-2 bg-white rounded-xl font-bold text-sm shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors">🔍 ขยายเต็มจอ</button>
               </div>
             `).join('')}
           </div>
