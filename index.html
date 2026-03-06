@@ -15,153 +15,167 @@
   <style>
     * { font-family: 'Kanit', 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
     .font-display { font-family: 'Playfair Display', serif; }
+    
+    /* แก้ไขเรื่องความสูงให้เสถียรบน iPad/iOS */
     html, body { height: 100%; overflow: hidden; position: fixed; width: 100%; }
     #app { height: 100%; display: flex; flex-direction: column; }
     @media (min-width: 768px) { #app { flex-direction: row; } }
-    ::-webkit-scrollbar { width: 4px; height: 4px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: #d4a574; border-radius: 4px; }
+
+    /* Custom scrollbar */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #faf7f2; }
+    ::-webkit-scrollbar-thumb { background: #d4a574; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #c4956a; }
     
+    /* Animations */
     .animate-fade-in { animation: fadeIn 0.3s ease-out forwards; }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
     .animate-float { animation: float 3s ease-in-out infinite; }
     
-    .glass-card { background: rgba(255, 255, 255, 0.85); backdrop-filter: blur(10px); border: 1px solid rgba(255, 255, 255, 0.4); box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.05); }
+    /* Card & Effects */
     .card-hover { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
     .card-hover:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -8px rgba(180, 83, 9, 0.15); }
-    
-    .sortable-ghost { opacity: 0.4; background: #fef3c7; border: 2px dashed #d4a574; }
-    .sortable-drag { cursor: grabbing !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: scale(1.02); }
-    
-    .bg-gradient-cream { background: linear-gradient(135deg, #faf7f2 0%, #f5f0e8 100%); }
-    .bg-gradient-gold { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
-    .btn-primary { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); transition: transform 0.2s, box-shadow 0.2s; border: none; }
+    .btn-primary { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); transition: all 0.3s ease; }
     .btn-primary:active { transform: scale(0.95); }
+    .bg-gradient-gold { background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%); }
+    .bg-gradient-cream { background: linear-gradient(180deg, #faf7f2 0%, #f5f0e8 100%); }
     
-    .modal-backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+    /* Nav & Sidebar */
+    .nav-item { transition: all 0.2s ease; }
     .nav-item.active { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); color: white; }
-    .nav-item.active svg { color: white; }
-    
-    .checkbox-custom { appearance: none; width: 22px; height: 22px; border: 2px solid #d4a574; border-radius: 6px; background: white; transition: all 0.2s; cursor: pointer;}
-    .checkbox-custom:checked { background: #dc2626; border-color: #dc2626; }
-    .checkbox-custom:checked::after { content: '✓'; display: flex; align-items: center; justify-content: center; color: white; height: 100%; font-size: 14px; }
-    
+    .nav-item.active span, .nav-item.active svg { color: white !important; }
     .mobile-menu { transform: translateX(-100%); transition: transform 0.3s ease; }
     .mobile-menu.open { transform: translateX(0); }
+    .modal-backdrop { background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px); }
+
+    /* Forms & Checkbox */
+    input:focus, textarea:focus, select:focus { outline: none; border-color: #d4a574; }
+    .checkbox-custom { appearance: none; width: 22px; height: 22px; border: 2px solid #d4a574; border-radius: 6px; background: white; transition: all 0.2s; cursor: pointer; }
+    .checkbox-custom:checked { background: linear-gradient(135deg, #dc2626 0%, #b91c1c 100%); border-color: #dc2626; }
+    .checkbox-custom:checked::after { content: '✓'; display: flex; align-items: center; justify-content: center; color: white; height: 100%; font-size: 14px; font-weight: bold; }
+
+    /* Drag & Drop */
+    .sortable-ghost { opacity: 0.4; background: #fef3c7; border: 2px dashed #d4a574; }
+    .sortable-drag { cursor: grabbing !important; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); transform: scale(1.02); z-index: 100; }
+    .drag-handle { touch-action: none; }
   </style>
 </head>
 <body class="bg-gradient-cream">
   <div id="app">
     <header class="md:hidden bg-white border-b border-amber-200 px-4 py-3 flex items-center justify-between z-50 flex-shrink-0">
-      <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-amber-50 transition-colors"><svg class="w-6 h-6 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg></button>
+      <button id="mobileMenuBtn" class="p-2 rounded-lg hover:bg-amber-50 transition-colors">
+        <svg class="w-6 h-6 text-amber-800" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
       <h1 class="font-display text-lg font-semibold text-amber-900" id="mobileTitle">ทริปจีนของวิว</h1>
       <div class="w-10"></div>
     </header>
 
     <div id="mobileMenuOverlay" class="fixed inset-0 bg-black/50 z-40 hidden" onclick="closeMobileMenu()"></div>
 
-    <aside id="sidebar" class="mobile-menu fixed md:relative z-50 w-72 md:w-64 h-full bg-white border-r border-amber-200 flex flex-col shadow-xl md:shadow-none flex-shrink-0 overflow-hidden">
+    <aside id="sidebar" class="mobile-menu fixed md:relative z-50 w-72 md:w-64 h-full bg-white border-r border-amber-200 flex flex-col shadow-xl md:shadow-none flex-shrink-0">
       <div class="p-5 border-b border-amber-100 flex-shrink-0">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-red-700 flex items-center justify-center shadow-lg"><span class="text-white text-lg">✈️</span></div>
-          <div><h1 class="font-display text-lg font-bold text-amber-900 leading-tight">ทริปจีนของวิว</h1><p class="text-xs text-amber-600">12-18 มีนาคม 2026</p></div>
+          <div>
+            <h1 class="font-display text-lg font-bold text-amber-900 leading-tight">ทริปจีนของวิว</h1>
+            <p class="text-xs text-amber-600">12-18 มีนาคม 2026</p>
+          </div>
         </div>
       </div>
       
       <nav class="flex-1 overflow-y-auto p-3 space-y-1">
-        <button onclick="navigateTo('home')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-700 hover:bg-amber-50" data-page="home"><span class="text-lg">🏠</span> <span class="font-medium text-sm">หน้าหลัก (Dashboard)</span></button>
+        <button onclick="navigateTo('home')" class="nav-item w-full flex items-center gap-3 px-4 py-3 rounded-xl text-amber-700 hover:bg-amber-50" data-page="home">
+          <span class="text-lg">🏠</span> <span class="font-medium text-sm">หน้าหลัก (Dashboard)</span>
+        </button>
         
         <div class="pt-3">
-          <p class="px-4 py-2 text-[10px] font-semibold text-amber-400 uppercase tracking-widest">แพลนรายวัน</p>
+          <p class="px-4 py-2 text-[10px] font-semibold text-amber-500 uppercase tracking-widest">แพลนรายวัน</p>
           <div class="space-y-1">
-            <button onclick="navigateTo('day1')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day1"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">1</span><span class="text-xs">วันที่ 1</span></button>
-            <button onclick="navigateTo('day2')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day2"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">2</span><span class="text-xs">วันที่ 2</span></button>
-            <button onclick="navigateTo('day3')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day3"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">3</span><span class="text-xs">วันที่ 3</span></button>
-            <button onclick="navigateTo('day4')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day4"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">4</span><span class="text-xs">วันที่ 4</span></button>
-            <button onclick="navigateTo('day5')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day5"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">5</span><span class="text-xs">วันที่ 5</span></button>
-            <button onclick="navigateTo('day6')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day6"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">6</span><span class="text-xs">วันที่ 6</span></button>
-            <button onclick="navigateTo('day7')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day7"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-[10px] font-bold">7</span><span class="text-xs">วันที่ 7</span></button>
+            <button onclick="navigateTo('day1')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day1"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">1</span><span class="text-sm">วันที่ 1</span></button>
+            <button onclick="navigateTo('day2')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day2"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">2</span><span class="text-sm">วันที่ 2</span></button>
+            <button onclick="navigateTo('day3')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day3"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">3</span><span class="text-sm">วันที่ 3</span></button>
+            <button onclick="navigateTo('day4')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day4"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">4</span><span class="text-sm">วันที่ 4</span></button>
+            <button onclick="navigateTo('day5')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day5"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">5</span><span class="text-sm">วันที่ 5</span></button>
+            <button onclick="navigateTo('day6')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day6"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">6</span><span class="text-sm">วันที่ 6</span></button>
+            <button onclick="navigateTo('day7')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="day7"><span class="w-6 h-6 rounded-lg bg-red-100 text-red-600 flex items-center justify-center text-xs font-bold">7</span><span class="text-sm">วันที่ 7</span></button>
           </div>
         </div>
 
         <div class="pt-3">
-          <p class="px-4 py-2 text-[10px] font-semibold text-amber-400 uppercase tracking-widest">จัดการทริป</p>
+          <p class="px-4 py-2 text-[10px] font-semibold text-amber-500 uppercase tracking-widest">จัดการทริป</p>
           <div class="space-y-1">
-            <button onclick="navigateTo('shanghai')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="shanghai"><span class="text-lg">🏙️</span><span class="text-xs">เซี่ยงไฮ้</span></button>
-            <button onclick="navigateTo('nanjing')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="nanjing"><span class="text-lg">🏛️</span><span class="text-xs">หนานจิง</span></button>
-            <button onclick="navigateTo('budget')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="budget"><span class="text-lg">💰</span><span class="text-xs">งบประมาณ</span></button>
-            <button onclick="navigateTo('hotel')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="hotel"><span class="text-lg">🏨</span><span class="text-xs">ที่พัก & แท็กซี่</span></button>
-            <button onclick="navigateTo('checklist')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="checklist"><span class="text-lg">✅</span><span class="text-xs">เช็คลิสต์</span></button>
-            <button onclick="navigateTo('notes')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="notes"><span class="text-lg">📝</span><span class="text-xs">สมุดโน้ต</span></button>
-            <button onclick="navigateTo('survival')" class="nav-item w-full flex items-center gap-3 px-4 py-2 rounded-xl text-amber-700 hover:bg-amber-50" data-page="survival"><span class="text-lg">🀄️</span><span class="text-xs font-bold text-red-600">การ์ดเอาตัวรอด</span></button>
+            <button onclick="navigateTo('shanghai')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="shanghai"><span class="text-lg">🏙️</span><span class="text-sm">เซี่ยงไฮ้</span></button>
+            <button onclick="navigateTo('nanjing')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="nanjing"><span class="text-lg">🏛️</span><span class="text-sm">หนานจิง</span></button>
+            <button onclick="navigateTo('budget')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="budget"><span class="text-lg">💰</span><span class="text-sm">งบประมาณ</span></button>
+            <button onclick="navigateTo('hotel')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="hotel"><span class="text-lg">🏨</span><span class="text-sm">ที่พัก & แท็กซี่</span></button>
+            <button onclick="navigateTo('checklist')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="checklist"><span class="text-lg">✅</span><span class="text-sm">เช็คลิสต์</span></button>
+            <button onclick="navigateTo('notes')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="notes"><span class="text-lg">📝</span><span class="text-sm">สมุดโน้ต</span></button>
+            <button onclick="navigateTo('survival')" class="nav-item w-full flex items-center gap-3 px-4 py-2.5 rounded-xl text-amber-700 hover:bg-amber-50" data-page="survival"><span class="text-lg">🀄️</span><span class="text-sm font-bold text-red-600">การ์ดเอาตัวรอด</span></button>
           </div>
         </div>
       </nav>
+      
       <div class="p-4 border-t border-amber-100 flex-shrink-0">
-        <div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-gradient-gold shadow-inner"><span class="text-2xl animate-float">🐼</span><div><p class="text-[10px] font-medium text-amber-800">นับถอยหลัง</p><p class="text-[10px] text-amber-600 font-bold" id="countdownText">กำลังโหลด...</p></div></div>
+        <div class="flex items-center gap-3 px-3 py-2 rounded-xl bg-gradient-gold shadow-inner">
+          <span class="text-2xl animate-float">🐼</span>
+          <div><p class="text-xs font-medium text-amber-800">นับถอยหลัง</p><p class="text-xs text-amber-600 font-bold" id="countdownText">กำลังโหลด...</p></div>
+        </div>
       </div>
     </aside>
 
     <main class="flex-1 overflow-y-auto bg-gradient-cream" id="mainContent"></main>
   </div>
 
-  <div id="modalContainer" class="fixed inset-0 z-50 hidden">
+  <div id="modalContainer" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
     <div class="modal-backdrop absolute inset-0" onclick="closeModal()"></div>
-    <div class="absolute inset-4 md:inset-auto md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:w-full md:max-w-lg bg-white rounded-2xl shadow-2xl overflow-y-auto max-h-[90vh] animate-fade-in" id="modalContent"></div>
+    <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh] animate-fade-in" id="modalContent"></div>
   </div>
-  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+  <div id="toastContainer" class="fixed bottom-6 left-1/2 -translate-x-1/2 w-11/12 max-w-sm z-50 space-y-2 pointer-events-none flex flex-col items-center"></div>
 
   <script>
-    // ==================== 1. DATA & SYNC ====================
+    // ==================== 1. DATA & OFFLINE-FIRST SYNC ====================
     const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwEDTxviQO0Vp0t7sWdM7xyByU9HO6PSHqitsAN1LDmV-agdepZzrZQYrKDlEDZDQN6Zw/exec';
+    
+    // โครงสร้างตั้งต้น
     let appData = {
       tripName: 'ทริปเซี่ยงไฮ้-หนานจิง', travelerName: 'View', startDate: '2026-03-12', endDate: '2026-03-18',
       activities: { day1:[], day2:[], day3:[], day4:[], day5:[], day6:[], day7:[] }, shanghai: [], nanjing: [],
       budget: { categories: [ { id: 'flight', name: 'ค่าตั๋ว', icon: '✈️', planned: 15000 }, { id: 'hotel', name: 'ค่าที่พัก', icon: '🏨', planned: 8000 }, { id: 'transport', name: 'เดินทาง', icon: '🚇', planned: 3000 }, { id: 'food', name: 'อาหาร', icon: '🍜', planned: 5000 }, { id: 'shopping', name: 'ช้อปปิ้ง', icon: '🛍️', planned: 5000 } ], expenses: [] },
-      hotels: [], notes: [], checklist: { 'เตรียมตัว': [] }
+      hotels: [], notes: [], checklist: { 'เตรียมตัว': [{ id: 1, text: 'พาสปอร์ต (อายุ 6 เดือน+)', done: false }] }
     };
+    
     let currentPage = 'home'; let editingItem = null;
 
-    async function loadDataFromSheets() {
-      const localData = localStorage.getItem('chinaTripData');
-      if (localData) appData = JSON.parse(localData);
-      
-      showToast('กำลังซิงก์ข้อมูลล่าสุด... ☁️', 'info');
+    // ดึงข้อมูลจาก LocalStorage ให้แสดงผลทันที (ไม่หน่วง)
+    const localData = localStorage.getItem('chinaTripData');
+    if (localData) { appData = JSON.parse(localData); }
+
+    // แอบซิงก์ข้อมูลจาก Google Sheets แบบเบื้องหลัง
+    async function backgroundSync() {
       try {
         const res = await fetch(SCRIPT_URL);
         const cloud = await res.json();
         if (cloud && Object.keys(cloud).length > 0) {
-          if (cloud.Activities) {
-            appData.activities = { day1:[], day2:[], day3:[], day4:[], day5:[], day6:[], day7:[] };
-            cloud.Activities.forEach(a => { if(a.day && appData.activities[a.day]) appData.activities[a.day].push(a); });
-          }
+          if (cloud.Activities) { appData.activities = { day1:[], day2:[], day3:[], day4:[], day5:[], day6:[], day7:[] }; cloud.Activities.forEach(a => { if(a.day && appData.activities[a.day]) appData.activities[a.day].push(a); }); }
           if (cloud.Expenses) appData.budget.expenses = cloud.Expenses;
           if (cloud.Hotels) appData.hotels = cloud.Hotels;
-          if (cloud.Checklist) {
-            appData.checklist = {};
-            cloud.Checklist.forEach(i => {
-              if(!appData.checklist[i.category]) appData.checklist[i.category]=[];
-              appData.checklist[i.category].push({id: i.id, text: i.text, done: (i.done===true||i.done==='TRUE')});
-            });
-          }
-          if (cloud.Places) {
-            appData.shanghai = cloud.Places.filter(p => p.city === 'shanghai');
-            appData.nanjing = cloud.Places.filter(p => p.city === 'nanjing');
-          }
+          if (cloud.Checklist) { appData.checklist = {}; cloud.Checklist.forEach(i => { if(!appData.checklist[i.category]) appData.checklist[i.category]=[]; appData.checklist[i.category].push({id: i.id, text: i.text, done: (i.done===true||i.done==='TRUE')}); }); }
+          if (cloud.Places) { appData.shanghai = cloud.Places.filter(p => p.city === 'shanghai'); appData.nanjing = cloud.Places.filter(p => p.city === 'nanjing'); }
+          if (cloud.Notes) appData.notes = cloud.Notes;
+          
           localStorage.setItem('chinaTripData', JSON.stringify(appData));
           renderPage(currentPage);
-          showToast('ข้อมูลอัปเดตตรงกันแล้ว! ✨', 'success');
+          showToast('อัปเดตข้อมูลตรงกับ Sheet แล้ว ✨', 'success');
         }
-      } catch(e) { console.log(e); showToast('โหลดข้อมูลออฟไลน์จากเครื่อง', 'info'); }
+      } catch(e) { console.log('Offline Mode'); }
     }
 
+    // เซฟลงเครื่องปุ๊บ โชว์ปั๊บ แล้วค่อยส่งไป Sheet แบบไม่รอ
     function saveData() {
       localStorage.setItem('chinaTripData', JSON.stringify(appData));
-      showToast('กำลังแบ็กอัปข้อมูล... ☁️', 'info');
-      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ data: appData }) })
-        .then(() => showToast('ซิงก์ Google Sheets อัปเดตแล้ว! ✅', 'success'))
-        .catch(() => showToast('เซฟลงเครื่องแล้ว (ซิงก์ไม่สำเร็จ)', 'error'));
+      renderPage(currentPage);
+      fetch(SCRIPT_URL, { method: 'POST', body: JSON.stringify({ data: appData }) }).catch(() => {});
     }
 
     // ==================== 2. UTILS ====================
@@ -175,10 +189,17 @@
     
     function showToast(msg, type = 'success') {
       const t = document.createElement('div');
-      t.className = `px-4 py-3 rounded-xl shadow-lg animate-fade-in flex items-center gap-2 ${type==='success'?'bg-green-500 text-white':type==='error'?'bg-red-500 text-white':'bg-amber-500 text-white'}`;
-      t.innerHTML = `<span class="text-sm font-medium">${msg}</span>`;
+      t.className = `px-5 py-3 rounded-full shadow-lg flex items-center justify-center gap-2 text-sm font-bold ${type==='success'?'bg-green-600 text-white':'bg-red-600 text-white'}`;
+      t.innerHTML = `<span>${msg}</span>`;
       document.getElementById('toastContainer').appendChild(t);
-      setTimeout(() => t.remove(), 2500);
+      setTimeout(() => { t.style.opacity='0'; t.style.transition='opacity 0.3s'; setTimeout(()=>t.remove(),300); }, 2000);
+    }
+
+    function updateCountdown() {
+      const now = new Date(); const tripStart = new Date(appData.startDate); const diff = tripStart - now;
+      let text = diff < 0 ? (now <= new Date(appData.endDate) ? '🎉 กำลังเที่ยวอยู่จ้า!' : '✨ จบทริปแล้ว') : `อีก ${Math.ceil(diff / (1000 * 60 * 60 * 24))} วันบิน!`;
+      const cdEl = document.getElementById('countdownText'); if(cdEl) cdEl.textContent = text;
+      const homeCdEl = document.getElementById('homeCountdown'); if(homeCdEl) homeCdEl.textContent = text;
     }
 
     function navigateTo(page) {
@@ -191,85 +212,98 @@
 
     function renderPage(page) {
       const content = document.getElementById('mainContent');
-      if (page === 'home') content.innerHTML = renderHomePage();
-      else if (page.startsWith('day')) { content.innerHTML = renderDayPage(parseInt(page.replace('day', ''))); setTimeout(initSortable, 100); }
-      else if (page === 'shanghai' || page === 'nanjing') content.innerHTML = renderCityPage(page);
-      else if (page === 'budget') content.innerHTML = renderBudgetPage();
-      else if (page === 'hotel') content.innerHTML = renderHotelPage();
-      else if (page === 'checklist') content.innerHTML = renderChecklistPage();
-      else if (page === 'survival') content.innerHTML = renderSurvivalPage();
+      let html = '';
+      if (page === 'home') html = renderHomePage();
+      else if (page.startsWith('day')) { html = renderDayPage(parseInt(page.replace('day', ''))); setTimeout(initSortable, 100); }
+      else if (page === 'shanghai' || page === 'nanjing') html = renderCityPage(page);
+      else if (page === 'budget') html = renderBudgetPage();
+      else if (page === 'hotel') html = renderHotelPage();
+      else if (page === 'checklist') html = renderChecklistPage();
+      else if (page === 'notes') html = renderNotesPage();
+      else if (page === 'survival') html = renderSurvivalPage();
+      
+      content.innerHTML = `<div class="animate-fade-in">${html}</div>`;
       content.scrollTop = 0;
     }
 
     // ==================== 3. PAGES ====================
     function renderHomePage() {
       const spent = appData.budget.expenses.reduce((s, e) => s + e.amount, 0);
+      const totalActs = Object.values(appData.activities).flat().length;
       return `
         <div class="p-4 md:p-8 space-y-6">
           <div class="bg-gradient-to-r from-red-500 to-red-600 rounded-2xl p-6 text-white shadow-lg flex items-center justify-between">
-            <div><p class="text-red-100 text-sm">เตรียมตัวให้พร้อม!</p><h2 class="text-3xl font-bold mt-1">ใกล้บินแล้ว!</h2></div><div class="text-5xl">🐼</div>
+            <div><p class="text-red-100 text-sm">เตรียมตัวให้พร้อม!</p><h2 class="text-3xl font-bold mt-1" id="homeCountdown"></h2></div><div class="text-5xl animate-float">🐼</div>
           </div>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <button onclick="navigateTo('shanghai')" class="bg-white p-5 rounded-2xl border shadow-sm text-center"><span class="text-3xl">🏙️</span><p class="font-bold mt-2">เซี่ยงไฮ้</p></button>
-            <button onclick="navigateTo('nanjing')" class="bg-white p-5 rounded-2xl border shadow-sm text-center"><span class="text-3xl">🏛️</span><p class="font-bold mt-2">หนานจิง</p></button>
-            <button onclick="navigateTo('budget')" class="bg-white p-5 rounded-2xl border shadow-sm text-center"><span class="text-3xl">💸</span><p class="font-bold mt-2 text-red-600">${formatCurrency(spent)}</p><p class="text-xs text-gray-500">ใช้ไปแล้ว</p></button>
-            <button onclick="navigateTo('survival')" class="bg-white p-5 rounded-2xl border shadow-sm text-center"><span class="text-3xl">🀄️</span><p class="font-bold mt-2 text-amber-600">เอาตัวรอด</p></button>
+            <button onclick="navigateTo('shanghai')" class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm text-center card-hover"><span class="text-3xl mb-2 block">🏙️</span><p class="font-bold text-amber-900">เซี่ยงไฮ้</p><p class="text-xs text-amber-500">${appData.shanghai.length} ที่</p></button>
+            <button onclick="navigateTo('nanjing')" class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm text-center card-hover"><span class="text-3xl mb-2 block">🏛️</span><p class="font-bold text-amber-900">หนานจิง</p><p class="text-xs text-amber-500">${appData.nanjing.length} ที่</p></button>
+            <button onclick="navigateTo('budget')" class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm text-center card-hover"><span class="text-3xl mb-2 block">💸</span><p class="font-bold text-red-600">${formatCurrency(spent)}</p><p class="text-xs text-amber-500">ใช้ไปแล้ว</p></button>
+            <button onclick="navigateTo('survival')" class="bg-white p-5 rounded-2xl border border-amber-100 shadow-sm text-center card-hover"><span class="text-3xl mb-2 block">🀄️</span><p class="font-bold text-amber-900">เอาตัวรอด</p><p class="text-xs text-amber-500">รวมคำฮิต</p></button>
+          </div>
+          <h3 class="font-bold text-lg text-amber-900 mt-6 mb-3">แพลนรายวัน</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            ${[1,2,3,4,5,6,7].map(d => {
+              const acts = appData.activities[`day${d}`] || []; const date = getDayDate(d);
+              return `<button onclick="navigateTo('day${d}')" class="bg-white p-4 rounded-xl border border-amber-100 flex justify-between items-center card-hover"><div class="flex items-center gap-4"><span class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center font-bold">D${d}</span><div class="text-left"><p class="font-bold text-amber-900">${date.toLocaleDateString('th-TH', {month:'short', day:'numeric'})}</p><p class="text-xs text-amber-500">${acts.length} แพลน</p></div></div><span class="text-amber-300">❯</span></button>`;
+            }).join('')}
           </div>
         </div>
       `;
     }
 
     function renderDayPage(dayNum) {
-      const dayKey = `day${dayNum}`; const activities = appData.activities[dayKey] || [];
+      const dayKey = `day${dayNum}`; const acts = appData.activities[dayKey] || []; const date = getDayDate(dayNum);
       return `
         <div class="p-4 md:p-8 space-y-6">
-          <div class="flex justify-between items-center glass-card p-4 rounded-2xl sticky top-0 z-10">
-            <div><h1 class="text-2xl font-bold text-amber-900">วันที่ ${dayNum}</h1><p class="text-xs text-amber-600">${getDayDate(dayNum).toLocaleDateString('th-TH', {weekday:'long', month:'long', day:'numeric'})}</p></div>
-            <button onclick="openAddActivityModal('${dayKey}')" class="btn-primary px-4 py-2 rounded-xl text-white font-medium">➕ เพิ่ม</button>
+          <div class="flex justify-between items-center bg-white/80 backdrop-blur-md p-4 rounded-2xl border border-amber-100 shadow-sm sticky top-0 z-10">
+            <div><h1 class="text-2xl font-bold text-amber-900">วันที่ ${dayNum}</h1><p class="text-xs text-amber-600">${date.toLocaleDateString('th-TH', {weekday:'long', month:'long', day:'numeric'})}</p></div>
+            <button onclick="openAddActivityModal('${dayKey}')" class="btn-primary px-4 py-2 rounded-xl text-white font-medium shadow-md">➕ เพิ่ม</button>
           </div>
-          <p class="text-sm text-amber-600 text-center">💡 แตะค้างที่ไอคอน ≡ เพื่อลากสลับแพลนเที่ยว</p>
+          <p class="text-sm text-amber-600 text-center bg-amber-50 py-2 rounded-xl border border-amber-100">💡 แตะค้างที่ไอคอน ≡ ด้านซ้าย เพื่อลากสลับแพลนเที่ยว</p>
           <div id="activityList" data-day="${dayKey}" class="space-y-3 pb-20">
-            ${activities.map(act => `
-              <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex items-stretch gap-3">
-                <div class="drag-handle w-8 flex items-center justify-center cursor-grab active:cursor-grabbing bg-amber-50 rounded-lg text-amber-300"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg></div>
-                <div class="flex-1 py-1"><div class="flex items-center gap-2"><span class="text-sm font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-md">${act.time||'--:--'}</span><h4 class="font-bold text-gray-800">${act.name}</h4></div>${act.note?`<p class="text-xs text-amber-600 bg-amber-50 p-2 rounded-lg mt-2 inline-block">${act.note}</p>`:''}</div>
-                <div class="flex flex-col justify-between items-end border-l pl-2"><button onclick="deleteActivity('${dayKey}', '${act.id}')" class="p-1 text-gray-300 hover:text-red-500">❌</button><button onclick="editActivity('${dayKey}', '${act.id}')" class="p-1 text-gray-300 hover:text-amber-500">✏️</button></div>
+            ${acts.length === 0 ? `<div class="text-center py-10 opacity-50"><span class="text-4xl block mb-2">📅</span><p>ยังไม่มีแพลน</p></div>` : 
+              acts.map(act => `
+              <div class="bg-white rounded-xl p-4 border border-amber-100 shadow-sm flex items-stretch gap-3 group relative">
+                <div class="drag-handle w-8 flex flex-col justify-center items-center cursor-grab active:cursor-grabbing text-amber-300 hover:text-amber-500 bg-amber-50 rounded-lg"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8h16M4 16h16"/></svg></div>
+                <div class="flex-1 py-1">
+                  <div class="flex items-center gap-2 mb-1"><span class="text-xs font-bold bg-red-100 text-red-700 px-2 py-0.5 rounded-md">${act.time||'--:--'}</span><h4 class="font-bold text-amber-900 text-lg">${act.name}</h4></div>
+                  ${act.note?`<p class="text-sm text-amber-600 mt-1">${act.note}</p>`:''}
+                </div>
+                <div class="flex flex-col justify-between items-end border-l border-gray-100 pl-2">
+                  <button onclick="deleteActivity('${dayKey}', '${act.id}')" class="p-1.5 text-gray-300 hover:text-red-500 transition-colors">❌</button>
+                  <button onclick="editActivity('${dayKey}', '${act.id}')" class="p-1.5 text-gray-300 hover:text-amber-500 transition-colors">✏️</button>
+                </div>
               </div>`).join('')}
           </div>
         </div>
       `;
     }
 
-    function initSortable() {
-      const el = document.getElementById('activityList');
-      if (el) new Sortable(el, { animation: 150, handle: '.drag-handle', onEnd: (e) => { const list = appData.activities[el.dataset.day]; list.splice(e.newIndex, 0, list.splice(e.oldIndex, 1)[0]); saveData(); } });
-    }
+    function initSortable() { const el = document.getElementById('activityList'); if (el) new Sortable(el, { animation: 150, handle: '.drag-handle', ghostClass: 'sortable-ghost', dragClass: 'sortable-drag', onEnd: (e) => { const list = appData.activities[el.dataset.day]; list.splice(e.newIndex, 0, list.splice(e.oldIndex, 1)[0]); saveData(); } }); }
 
     function renderCityPage(cityKey) {
       const places = appData[cityKey] || [];
-      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold">${cityKey==='shanghai'?'🏙️ เซี่ยงไฮ้':'🏛️ หนานจิง'}</h1><button onclick="openAddPlaceModal('${cityKey}')" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่ม</button></div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${places.map(p => `<div class="bg-white rounded-xl p-4 border"><div class="flex justify-between"><h3 class="font-bold">${p.name}</h3><div><button onclick="editPlace('${cityKey}','${p.id}')">✏️</button><button onclick="deletePlace('${cityKey}','${p.id}')">❌</button></div></div>${p.note?`<p class="text-sm mt-2">${p.note}</p>`:''}</div>`).join('')}</div></div>`;
+      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold text-amber-900">${cityKey==='shanghai'?'🏙️ เซี่ยงไฮ้':'🏛️ หนานจิง'}</h1><button onclick="openAddPlaceModal('${cityKey}')" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่ม</button></div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">${places.map(p => `<div class="bg-white rounded-xl p-5 border border-amber-100 shadow-sm"><div class="flex justify-between items-start"><h3 class="font-bold text-lg text-amber-900">${p.name}</h3><div class="flex gap-2"><button onclick="editPlace('${cityKey}','${p.id}')" class="text-amber-500">✏️</button><button onclick="deletePlace('${cityKey}','${p.id}')" class="text-red-400">❌</button></div></div>${p.note?`<p class="text-sm mt-2 text-amber-600">${p.note}</p>`:''}</div>`).join('')}</div></div>`;
     }
 
     function calculateTHB() { document.getElementById('expenseAmount').value = Math.round((parseFloat(document.getElementById('expenseCNY').value)||0) * 4.7); }
+    
     function renderBudgetPage() {
       const spent = appData.budget.expenses.reduce((s, e) => s + e.amount, 0);
-      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold">💰 งบประมาณ</h1><button onclick="openAddExpenseModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ จ่ายเงิน</button></div><div class="bg-red-500 p-6 rounded-2xl text-white text-center"><p>ใช้จ่ายไปแล้ว</p><h2 class="text-4xl font-bold">฿${spent.toLocaleString()}</h2></div><div class="space-y-3">${appData.budget.expenses.slice().reverse().map(e=>`<div class="bg-white p-4 rounded-xl border flex justify-between"><p class="font-bold">${e.description}</p><div><span class="text-red-600 font-bold mr-3">฿${e.amount}</span><button onclick="deleteExpense('${e.id}')">❌</button></div></div>`).join('')}</div></div>`;
+      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold text-amber-900">💰 งบประมาณ</h1><button onclick="openAddExpenseModal()" class="btn-primary px-4 py-2 rounded-xl text-white shadow-md">➕ จ่ายเงิน</button></div>
+        <div class="bg-gradient-to-br from-red-500 to-red-600 p-8 rounded-2xl text-white text-center shadow-lg"><p class="text-red-100 mb-1">ใช้จ่ายไปแล้วทั้งหมด</p><h2 class="text-4xl font-bold">${formatCurrency(spent)}</h2></div>
+        <h3 class="font-bold text-lg text-amber-900 mt-6">ประวัติการจ่าย</h3><div class="space-y-3">${appData.budget.expenses.slice().reverse().map(e=>`<div class="bg-white p-4 rounded-xl border border-amber-100 shadow-sm flex justify-between items-center"><div class="flex-1"><p class="font-bold text-amber-900">${e.description}</p></div><span class="text-red-600 font-bold text-lg mr-3">${formatCurrency(e.amount)}</span><button onclick="deleteExpense('${e.id}')" class="text-gray-300 hover:text-red-500">❌</button></div>`).join('')}</div></div>`;
     }
 
-    // --- แก้ไข: แยกโหมดแท็กซี่(สีเหลือง) และ โหมดเอาตัวรอด(สีแดง) ให้ขาดจากกัน ---
-    function openTaxiMode(text) { 
-      openModal(`<div class="bg-yellow-400 p-8 min-h-[50vh] flex flex-col justify-center text-center rounded-2xl border-4 border-yellow-500"><div class="text-6xl mb-4">🚕</div><h3 class="text-2xl font-bold mb-2">กรุณาไปส่งที่ / 请送我到</h3><h1 class="text-4xl font-black text-red-700 my-6 leading-tight break-words">${text}</h1><button onclick="closeModal()" class="w-full py-4 bg-white rounded-xl font-bold text-xl mt-auto">ปิดหน้าจอ / 关闭</button></div>`); 
-    }
-    
+    function openTaxiMode(text) { openModal(`<div class="bg-yellow-400 p-8 flex flex-col justify-center text-center rounded-3xl border-4 border-yellow-500 min-h-[50vh]"><div class="text-6xl mb-4">🚕</div><h3 class="text-2xl font-bold text-amber-900 mb-2">กรุณาไปส่งที่ / 请送我到</h3><h1 class="text-4xl font-black text-red-700 my-6 leading-tight break-words">${text}</h1><button onclick="closeModal()" class="w-full py-4 bg-white rounded-xl font-bold text-xl mt-auto text-amber-900 shadow-sm">ปิดหน้าจอ / 关闭</button></div>`); }
     function renderHotelPage() {
-      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold">🏨 ที่พัก</h1><button onclick="openAddHotelModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่ม</button></div><div class="space-y-4">${appData.hotels.map(h=>`<div class="bg-white rounded-2xl p-5 border"><div class="flex justify-between"><h3 class="font-bold text-lg">${h.name}</h3><button onclick="deleteHotel('${h.id}')">❌</button></div><p class="text-sm mt-2 text-gray-500">📍 ${h.chineseAddress||'ยังไม่มีที่อยู่จีน'}</p>${h.chineseAddress?`<button onclick="openTaxiMode('${h.chineseAddress}')" class="mt-4 w-full py-3 bg-yellow-400 font-bold rounded-xl flex justify-center items-center gap-2">🚕 ขยายที่อยู่ให้แท็กซี่ดู</button>`:''}</div>`).join('')}</div></div>`;
+      return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold text-amber-900">🏨 ที่พัก</h1><button onclick="openAddHotelModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่ม</button></div>
+        <div class="space-y-4">${appData.hotels.map(h=>`<div class="bg-white rounded-2xl p-6 border border-amber-100 shadow-sm"><div class="flex justify-between items-start mb-3"><h3 class="font-bold text-xl text-amber-900">${h.name}</h3><button onclick="deleteHotel('${h.id}')" class="text-gray-300 hover:text-red-500">❌</button></div><p class="text-sm mt-1 text-gray-600">IN: ${h.checkIn||'-'} | OUT: ${h.checkOut||'-'}</p><p class="text-sm text-gray-500 mt-2">📍 ${h.chineseAddress||'ยังไม่มีที่อยู่จีน'}</p>${h.chineseAddress?`<button onclick="openTaxiMode('${h.chineseAddress}')" class="mt-4 w-full py-3 bg-yellow-400 font-bold rounded-xl flex justify-center items-center gap-2 text-amber-900 shadow-sm">🚕 ขยายที่อยู่ให้แท็กซี่ดู</button>`:''}</div>`).join('')}</div></div>`;
     }
 
-    function openSurvivalMode(icon, th, cn) { 
-      openModal(`<div class="bg-red-50 p-8 min-h-[50vh] flex flex-col justify-center text-center rounded-2xl border-4 border-red-600"><div class="text-7xl mb-4">${icon}</div><h3 class="text-2xl font-bold text-gray-700 mb-2">${th}</h3><h1 class="text-5xl md:text-6xl font-black text-red-600 my-6 leading-snug break-words">${cn}</h1><button onclick="closeModal()" class="w-full py-4 bg-white border border-red-200 rounded-xl text-red-800 font-bold text-xl mt-auto">ปิดหน้าจอ / 关闭</button></div>`); 
-    }
-    
+    function openSurvivalMode(icon, th, cn, py) { openModal(`<div class="bg-red-50 p-8 flex flex-col justify-center text-center rounded-3xl border-4 border-red-600 min-h-[50vh]"><div class="text-7xl mb-4">${icon}</div><h3 class="text-2xl font-bold text-gray-700 mb-2">${th}</h3><h1 class="text-5xl md:text-6xl font-black text-red-600 my-6 leading-snug break-words">${cn}</h1><p class="text-xl text-gray-500 font-mono mb-8">${py}</p><button onclick="closeModal()" class="w-full py-4 bg-white border border-red-200 rounded-xl text-red-800 font-bold text-xl mt-auto shadow-sm">ปิดหน้าจอ / 关闭</button></div>`); }
     function renderSurvivalPage() {
       const phrases = [
         { th: 'ใช้ Alipay ได้ไหม', cn: '可以用支付宝吗?', py: 'Kěyǐ yòng Zhīfùbǎo ma?', icon: '📱', bg: 'from-blue-100 to-blue-50' },
@@ -285,54 +319,56 @@
         { th: 'ไม่ใส่แครอท', cn: '不要胡萝卜', py: 'Bú yào húluóbo', icon: '🥕', bg: 'from-orange-200 to-orange-100' },
         { th: 'ไม่ใส่ผัก', cn: '不要蔬菜', py: 'Bú yào shūcài', icon: '🥗', bg: 'from-emerald-200 to-emerald-100' },
         { th: 'เบอร์ 4 ตัวท้ายคือ 0749', cn: '手机尾号 0749', py: '(อ่านว่า: หลิง-ชี-ซื่อ-จิ่ว)', icon: '🚗', bg: 'from-yellow-300 to-yellow-100' },
-        { th: 'ฉันจะไปที่นี่', cn: '我要去这里', py: 'Wǒ yào qù zhèlǐ', icon: '📍', bg: 'from-sky-100 to-sky-50' },
-        { th: 'ช่วยเรียกรถให้หน่อยได้ไหม', cn: '可以帮我叫车吗?', py: 'Kěyǐ bāng wǒ jiào chē ma?', icon: '🚕', bg: 'from-yellow-200 to-yellow-100' },
+        { th: 'ฉันจะไปที่นี่ (ชี้รูป)', cn: '我要去这里', py: 'Wǒ yào qù zhèlǐ', icon: '📍', bg: 'from-sky-100 to-sky-50' },
+        { th: 'ช่วยเรียกรถให้หน่อย', cn: '可以帮我叫车吗?', py: 'Kěyǐ bāng wǒ jiào chē ma?', icon: '🚕', bg: 'from-yellow-200 to-yellow-100' },
         { th: 'สถานีรถไฟอยู่ไหน', cn: '火车站在哪里?', py: 'Huǒchēzhàn zài nǎlǐ?', icon: '🚉', bg: 'from-amber-100 to-amber-50' },
         { th: 'ฉันจะไปสนามบิน', cn: '我要去机场', py: 'Wǒ yào qù jīchǎng', icon: '✈️', bg: 'from-sky-200 to-sky-100' },
         { th: 'ฉันจะไปสถานีรถไฟความเร็วสูง', cn: '我要去高铁站', py: 'Wǒ yào qù gāotiězhàn', icon: '🚄', bg: 'from-slate-200 to-slate-100' },
         { th: 'ห้องน้ำอยู่ที่ไหน', cn: '洗手间在哪里?', py: 'Xǐshǒujiān zài nǎlǐ?', icon: '🚽', bg: 'from-yellow-100 to-yellow-50' },
         { th: 'ขอฝากกระเป๋าไว้ได้ไหม', cn: '可以寄存行李吗?', py: 'Kěyǐ jìcún xínglǐ ma?', icon: '🧳', bg: 'from-emerald-100 to-emerald-50' }
       ];
-      
-      return `<div class="p-4 md:p-8 space-y-4"><h1 class="text-2xl font-bold flex items-center gap-2"><span class="text-3xl">🀄️</span> เอาตัวรอดในจีน</h1><p class="text-sm text-gray-500 mb-4">กดปุ่มขยายจอแล้วยื่นให้เค้าดูได้เลย</p><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${phrases.map(p=>`<div class="bg-gradient-to-br ${p.bg} rounded-2xl p-5 border glass-card relative overflow-hidden group"><span class="absolute -right-2 -top-2 text-6xl opacity-20">${p.icon}</span><p class="text-sm font-bold text-gray-700 mb-1">${p.th}</p><h2 class="text-3xl font-black text-gray-900 mb-1">${p.cn}</h2><p class="text-xs text-gray-600 italic font-mono mb-4">${p.py}</p><button onclick="openSurvivalMode('${p.icon}','${p.th}','${p.cn}')" class="w-full py-2 bg-white rounded-xl font-bold text-sm shadow-sm border border-gray-100">🔍 ขยายเต็มจอ</button></div>`).join('')}</div></div>`;
+      return `<div class="p-4 md:p-8 space-y-4"><h1 class="text-2xl font-bold text-amber-900 flex items-center gap-2"><span class="text-3xl">🀄️</span> เอาตัวรอดในจีน</h1><p class="text-sm text-amber-600 mb-4">กดปุ่มขยายจอแล้วยื่นให้เค้าดูได้เลย</p><div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">${phrases.map(p=>`<div class="bg-gradient-to-br ${p.bg} rounded-2xl p-5 border border-white relative overflow-hidden shadow-sm group"><span class="absolute -right-2 -top-2 text-6xl opacity-20 transition-transform group-hover:scale-110">${p.icon}</span><p class="text-sm font-bold text-gray-700 mb-1">${p.th}</p><h2 class="text-3xl font-black text-gray-900 mb-1">${p.cn}</h2><p class="text-xs text-gray-600 italic font-mono mb-4">${p.py}</p><button onclick="openSurvivalMode('${p.icon}','${p.th}','${p.cn}','${p.py}')" class="w-full py-2 bg-white rounded-xl font-bold text-sm shadow-sm text-gray-700 border border-gray-100">🔍 ขยายเต็มจอ</button></div>`).join('')}</div></div>`;
     }
 
-    function renderChecklistPage() { return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold">✅ เช็คลิสต์</h1><button onclick="openAddChecklistModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่ม</button></div><div class="space-y-4">${Object.entries(appData.checklist).map(([cat,items])=>`<div class="bg-white rounded-2xl border"><div class="px-5 py-3 bg-amber-50 font-bold">${cat}</div><div class="divide-y">${items.map(i=>`<label class="flex items-center gap-3 px-5 py-4 cursor-pointer"><input type="checkbox" class="checkbox-custom" ${i.done?'checked':''} onchange="toggleChecklist('${cat}',${i.id})"><span class="flex-1 ${i.done?'text-gray-400 line-through':''}">${i.text}</span><button onclick="event.preventDefault();deleteChecklist('${cat}',${i.id})">❌</button></label>`).join('')}</div></div>`).join('')}</div></div>`; }
-    function toggleChecklist(cat, id) { const item = appData.checklist[cat].find(i=>i.id===id); if(item){ item.done=!item.done; saveData(); renderPage('checklist'); } }
-    function deleteChecklist(cat, id) { appData.checklist[cat] = appData.checklist[cat].filter(i=>i.id!==id); saveData(); renderPage('checklist'); }
+    function renderChecklistPage() { return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold text-amber-900">✅ เช็คลิสต์</h1><button onclick="openAddChecklistModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่มของ</button></div><div class="space-y-4">${Object.entries(appData.checklist).map(([cat,items])=>`<div class="bg-white rounded-2xl border border-amber-100 overflow-hidden shadow-sm"><div class="px-5 py-3 bg-amber-50 font-bold text-amber-900 border-b border-amber-100">${cat}</div><div class="divide-y divide-amber-50">${items.map(i=>`<label class="flex items-center gap-4 px-5 py-4 cursor-pointer hover:bg-gray-50"><input type="checkbox" class="checkbox-custom" ${i.done?'checked':''} onchange="toggleChecklist('${cat}',${i.id})"><span class="flex-1 font-medium ${i.done?'text-gray-400 line-through':'text-gray-700'}">${i.text}</span><button onclick="event.preventDefault();deleteChecklist('${cat}',${i.id})" class="text-gray-300 hover:text-red-500">❌</button></label>`).join('')}</div></div>`).join('')}</div></div>`; }
+    function toggleChecklist(cat, id) { const item = appData.checklist[cat].find(i=>i.id===id); if(item){ item.done=!item.done; saveData(); } }
+    function deleteChecklist(cat, id) { appData.checklist[cat] = appData.checklist[cat].filter(i=>i.id!==id); saveData(); }
 
-    function renderNotesPage() { return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold">📝 สมุดโน้ต</h1><button onclick="openAddNoteModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เพิ่มโน้ต</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${appData.notes.map(n=>`<div class="bg-yellow-50 rounded-2xl p-5 border border-yellow-200 shadow-sm relative"><h3 class="font-bold text-lg mb-2">${n.title||'ไม่ระบุชื่อ'}</h3><p class="text-sm whitespace-pre-wrap">${n.content}</p><button onclick="deleteNote('${n.id}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500">❌</button></div>`).join('')}</div></div>`; }
+    function renderNotesPage() { return `<div class="p-4 md:p-8 space-y-6"><div class="flex justify-between items-center"><h1 class="text-2xl font-bold text-amber-900">📝 สมุดโน้ต</h1><button onclick="openAddNoteModal()" class="btn-primary px-4 py-2 rounded-xl text-white">➕ เขียนโน้ต</button></div><div class="grid grid-cols-1 md:grid-cols-2 gap-4">${appData.notes.map(n=>`<div class="bg-yellow-50 rounded-2xl p-6 border border-yellow-200 shadow-sm relative"><h3 class="font-bold text-lg mb-2 text-amber-900 pr-8">${n.title||'ไม่ระบุชื่อ'}</h3><p class="text-sm text-gray-700 whitespace-pre-wrap">${n.content}</p><button onclick="deleteNote('${n.id}')" class="absolute top-4 right-4 text-gray-400 hover:text-red-500">❌</button></div>`).join('')}</div></div>`; }
 
-    // ==================== 4. MODALS & FORMS ====================
-    function openAddActivityModal(dayKey) { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">${editingItem?'แก้ไขแพลน':'เพิ่มแพลน'}</h2><form onsubmit="saveActivity(event, '${dayKey}')" class="space-y-4"><div class="flex gap-4"><input type="time" id="actTime" value="${editingItem?.time||''}" class="w-1/3 px-4 py-2 border rounded-xl"><input type="text" id="actName" required value="${editingItem?.name||''}" placeholder="ชื่อสถานที่ *" class="w-2/3 px-4 py-2 border rounded-xl"></div><textarea id="actNote" placeholder="โน้ตกันลืม..." class="w-full px-4 py-2 border rounded-xl">${editingItem?.note||''}</textarea><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function saveActivity(e, dayKey) { e.preventDefault(); const obj = { id: editingItem?.id||generateId(), time: document.getElementById('actTime').value, name: document.getElementById('actName').value, note: document.getElementById('actNote').value }; if(editingItem) { const i = appData.activities[dayKey].findIndex(a=>a.id===editingItem.id); appData.activities[dayKey][i] = obj; } else { appData.activities[dayKey].push(obj); } saveData(); closeModal(); renderPage(currentPage); }
+    // ==================== 4. FORMS ====================
+    function openAddActivityModal(dayKey) { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">${editingItem?'แก้ไขแพลน':'เพิ่มแพลน'}</h2><form onsubmit="saveActivity(event, '${dayKey}')" class="space-y-4"><div class="flex gap-4"><input type="time" id="actTime" value="${editingItem?.time||''}" class="w-1/3 px-4 py-3 border border-amber-200 rounded-xl"><input type="text" id="actName" required value="${editingItem?.name||''}" placeholder="ชื่อสถานที่ *" class="w-2/3 px-4 py-3 border border-amber-200 rounded-xl"></div><textarea id="actNote" placeholder="จดโน้ตสั้นๆ..." rows="3" class="w-full px-4 py-3 border border-amber-200 rounded-xl">${editingItem?.note||''}</textarea><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function saveActivity(e, dayKey) { e.preventDefault(); const obj = { id: editingItem?.id||generateId(), time: document.getElementById('actTime').value, name: document.getElementById('actName').value, note: document.getElementById('actNote').value }; if(editingItem) { const i = appData.activities[dayKey].findIndex(a=>a.id===editingItem.id); appData.activities[dayKey][i] = obj; } else { appData.activities[dayKey].push(obj); } saveData(); closeModal(); }
     function editActivity(day, id) { editingItem = appData.activities[day].find(a=>a.id===id); openAddActivityModal(day); }
-    function deleteActivity(day, id) { appData.activities[day] = appData.activities[day].filter(a=>a.id!==id); saveData(); renderPage(currentPage); }
+    function deleteActivity(day, id) { appData.activities[day] = appData.activities[day].filter(a=>a.id!==id); saveData(); }
 
-    function openAddPlaceModal(cityKey) { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">เพิ่มที่เที่ยว</h2><form onsubmit="savePlace(event, '${cityKey}')" class="space-y-4"><input type="text" id="pName" required value="${editingItem?.name||''}" placeholder="ชื่อสถานที่ *" class="w-full px-4 py-2 border rounded-xl"><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function savePlace(e, cityKey) { e.preventDefault(); const obj = { id: editingItem?.id||generateId(), name: document.getElementById('pName').value }; if(editingItem) { const i = appData[cityKey].findIndex(p=>p.id===editingItem.id); appData[cityKey][i]=obj; } else appData[cityKey].push(obj); saveData(); closeModal(); renderPage(currentPage); }
+    function openAddPlaceModal(cityKey) { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">เพิ่มที่เที่ยว</h2><form onsubmit="savePlace(event, '${cityKey}')" class="space-y-4"><input type="text" id="pName" required value="${editingItem?.name||''}" placeholder="ชื่อสถานที่ *" class="w-full px-4 py-3 border border-amber-200 rounded-xl"><textarea id="pNote" placeholder="จดโน้ต..." rows="2" class="w-full px-4 py-3 border border-amber-200 rounded-xl">${editingItem?.note||''}</textarea><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function savePlace(e, cityKey) { e.preventDefault(); const obj = { id: editingItem?.id||generateId(), name: document.getElementById('pName').value, note: document.getElementById('pNote').value }; if(editingItem) { const i = appData[cityKey].findIndex(p=>p.id===editingItem.id); appData[cityKey][i]=obj; } else appData[cityKey].push(obj); saveData(); closeModal(); }
     function editPlace(city, id) { editingItem = appData[city].find(p=>p.id===id); openAddPlaceModal(city); }
-    function deletePlace(city, id) { appData[city] = appData[city].filter(p=>p.id!==id); saveData(); renderPage(currentPage); }
+    function deletePlace(city, id) { appData[city] = appData[city].filter(p=>p.id!==id); saveData(); }
 
-    function openAddExpenseModal() { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">รายจ่าย</h2><form onsubmit="saveExpense(event)" class="space-y-4"><input type="text" id="expenseDesc" required placeholder="รายการ *" class="w-full px-4 py-2 border rounded-xl"><div class="p-4 bg-amber-50 rounded-xl"><p class="text-xs font-bold text-center mb-2">1 หยวน = 4.7 บาท</p><div class="flex gap-4"><input type="number" id="expenseCNY" oninput="calculateTHB()" placeholder="หยวน (¥)" class="w-1/2 px-4 py-2 border rounded-xl"><input type="number" id="expenseAmount" required placeholder="บาท (฿) *" class="w-1/2 px-4 py-2 border rounded-xl font-bold text-red-600"></div></div><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function saveExpense(e) { e.preventDefault(); appData.budget.expenses.push({ id: generateId(), description: document.getElementById('expenseDesc').value, amount: parseFloat(document.getElementById('expenseAmount').value)||0 }); saveData(); closeModal(); renderPage('budget'); }
-    function deleteExpense(id) { appData.budget.expenses = appData.budget.expenses.filter(e=>e.id!==id); saveData(); renderPage('budget'); }
+    function openAddExpenseModal() { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">บันทึกรายจ่าย</h2><form onsubmit="saveExpense(event)" class="space-y-4"><input type="text" id="expenseDesc" required placeholder="ค่าอะไรเอ่ย? *" class="w-full px-4 py-3 border border-amber-200 rounded-xl"><div class="p-4 bg-amber-50 rounded-xl border border-amber-200"><p class="text-xs font-bold text-center mb-3 text-amber-800">เครื่องคิดเลข (1 หยวน = 4.7 บาท)</p><div class="flex gap-3 items-center"><div class="relative w-1/2"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 font-bold">¥</span><input type="number" id="expenseCNY" oninput="calculateTHB()" placeholder="0" class="w-full pl-10 pr-3 py-3 border border-amber-200 rounded-xl font-bold"></div><span class="text-gray-400 font-bold">=</span><div class="relative w-1/2"><span class="absolute left-4 top-1/2 -translate-y-1/2 text-red-600 font-bold">฿</span><input type="number" id="expenseAmount" required placeholder="0" class="w-full pl-10 pr-3 py-3 border-2 border-red-400 rounded-xl font-bold text-red-600"></div></div></div><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function saveExpense(e) { e.preventDefault(); appData.budget.expenses.push({ id: generateId(), description: document.getElementById('expenseDesc').value, amount: parseFloat(document.getElementById('expenseAmount').value)||0 }); saveData(); closeModal(); }
+    function deleteExpense(id) { appData.budget.expenses = appData.budget.expenses.filter(e=>e.id!==id); saveData(); }
 
-    function openAddHotelModal() { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">ที่พัก</h2><form onsubmit="saveHotel(event)" class="space-y-4"><input type="text" id="hName" required placeholder="ชื่อโรงแรม *" class="w-full px-4 py-2 border rounded-xl"><textarea id="hCN" placeholder="ที่อยู่จีนสำหรับแท็กซี่ *" required class="w-full px-4 py-2 border rounded-xl bg-yellow-50"></textarea><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function saveHotel(e) { e.preventDefault(); appData.hotels.push({ id: generateId(), name: document.getElementById('hName').value, chineseAddress: document.getElementById('hCN').value }); saveData(); closeModal(); renderPage('hotel'); }
-    function deleteHotel(id) { appData.hotels = appData.hotels.filter(h=>h.id!==id); saveData(); renderPage('hotel'); }
+    function openAddHotelModal() { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">เพิ่มที่พัก</h2><form onsubmit="saveHotel(event)" class="space-y-4"><input type="text" id="hName" required placeholder="ชื่อโรงแรม *" class="w-full px-4 py-3 border border-amber-200 rounded-xl"><div class="flex gap-3"><div class="w-1/2"><label class="text-xs ml-2 text-gray-500 font-bold">IN</label><input type="date" id="hIn" class="w-full px-4 py-3 border border-amber-200 rounded-xl mt-1"></div><div class="w-1/2"><label class="text-xs ml-2 text-gray-500 font-bold">OUT</label><input type="date" id="hOut" class="w-full px-4 py-3 border border-amber-200 rounded-xl mt-1"></div></div><textarea id="hCN" placeholder="ที่อยู่ภาษาจีน (เอาไว้เปิดให้แท็กซี่ดู) *" required rows="3" class="w-full px-4 py-3 bg-yellow-50 border-2 border-amber-400 rounded-xl"></textarea><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function saveHotel(e) { e.preventDefault(); appData.hotels.push({ id: generateId(), name: document.getElementById('hName').value, checkIn: document.getElementById('hIn').value, checkOut: document.getElementById('hOut').value, chineseAddress: document.getElementById('hCN').value }); saveData(); closeModal(); }
+    function deleteHotel(id) { appData.hotels = appData.hotels.filter(h=>h.id!==id); saveData(); }
 
-    function openAddChecklistModal() { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">เพิ่มเช็คลิสต์</h2><form onsubmit="saveChecklist(event)" class="space-y-4"><input type="text" id="cText" required placeholder="สิ่งที่ต้องทำ..." class="w-full px-4 py-2 border rounded-xl"><select id="cCat" class="w-full px-4 py-2 border rounded-xl"><option value="เตรียมตัว">เตรียมตัว</option></select><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function saveChecklist(e) { e.preventDefault(); const cat = document.getElementById('cCat').value; if(!appData.checklist[cat]) appData.checklist[cat]=[]; appData.checklist[cat].push({ id: generateId(), text: document.getElementById('cText').value, done: false }); saveData(); closeModal(); renderPage('checklist'); }
+    function openAddChecklistModal() { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">เพิ่มเช็คลิสต์</h2><form onsubmit="saveChecklist(event)" class="space-y-4"><input type="text" id="cText" required placeholder="สิ่งที่ต้องทำ/เตรียม..." class="w-full px-4 py-3 border border-amber-200 rounded-xl"><select id="cCat" class="w-full px-4 py-3 border border-amber-200 rounded-xl"><option value="เตรียมตัว">เตรียมตัว</option></select><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function saveChecklist(e) { e.preventDefault(); const cat = document.getElementById('cCat').value; if(!appData.checklist[cat]) appData.checklist[cat]=[]; appData.checklist[cat].push({ id: generateId(), text: document.getElementById('cText').value, done: false }); saveData(); closeModal(); }
 
-    function openAddNoteModal() { openModal(`<div class="p-6"><h2 class="text-xl font-bold mb-4">เพิ่มสมุดโน้ต</h2><form onsubmit="saveNote(event)" class="space-y-4"><input type="text" id="nTitle" placeholder="หัวข้อ" class="w-full px-4 py-2 border rounded-xl"><textarea id="nContent" required placeholder="รายละเอียด..." rows="4" class="w-full px-4 py-2 border rounded-xl"></textarea><div class="flex gap-3"><button type="button" onclick="closeModal()" class="flex-1 py-3 border rounded-xl">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl">บันทึก</button></div></form></div>`); }
-    function saveNote(e) { e.preventDefault(); appData.notes.push({ id: generateId(), title: document.getElementById('nTitle').value, content: document.getElementById('nContent').value }); saveData(); closeModal(); renderPage('notes'); }
-    function deleteNote(id) { appData.notes = appData.notes.filter(n=>n.id!==id); saveData(); renderPage('notes'); }
+    function openAddNoteModal() { openModal(`<div class="p-8"><h2 class="text-xl font-bold text-amber-900 mb-6">เพิ่มสมุดโน้ต</h2><form onsubmit="saveNote(event)" class="space-y-4"><input type="text" id="nTitle" placeholder="หัวข้อ" class="w-full px-4 py-3 border border-amber-200 rounded-xl"><textarea id="nContent" required placeholder="รายละเอียด..." rows="5" class="w-full px-4 py-3 border border-amber-200 rounded-xl"></textarea><div class="flex gap-3 pt-2"><button type="button" onclick="closeModal()" class="flex-1 py-3 bg-gray-100 text-gray-700 rounded-xl font-bold">ยกเลิก</button><button type="submit" class="flex-1 btn-primary text-white py-3 rounded-xl font-bold">บันทึก</button></div></form></div>`); }
+    function saveNote(e) { e.preventDefault(); appData.notes.push({ id: generateId(), title: document.getElementById('nTitle').value, content: document.getElementById('nContent').value }); saveData(); closeModal(); }
+    function deleteNote(id) { appData.notes = appData.notes.filter(n=>n.id!==id); saveData(); }
 
     // ==================== 5. INIT ====================
     document.getElementById('mobileMenuBtn').addEventListener('click', openMobileMenu);
-    window.onload = () => { updateCountdown(); loadDataFromSheets(); };
-    setInterval(updateCountdown, 60000);
+    window.onload = () => { 
+      renderPage('home'); 
+      updateCountdown(); setInterval(updateCountdown, 60000);
+      backgroundSync();
+    };
   </script>
 </body>
 </html>
